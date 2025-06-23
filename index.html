@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Revelate Staff Portal</title>
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #290135;
+      color: white;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background-color: #290135;
+      border-bottom: 1px solid #fff3;
+    }
+    .logo {
+      height: 60px;
+      margin-right: 15px;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+    .content {
+      padding: 40px;
+    }
+    a {
+      color: #4fd1c5;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="REPLACE_WITH_LOGO_URL" alt="Revelate Logo">
+    <h1>Revelate Staff Portal</h1>
+  </header>
+  <div class="content">
+    <p id="user-greeting">Authenticating...</p>
+    <h3>Your Devices:</h3>
+    <ul id="devices"></ul>
+    <p><a href="https://myaccount.microsoft.com" target="_blank">Reset your password / manage MFA</a></p>
+  </div>
+
+  <script>
+    const msalConfig = {
+      auth: {
+        clientId: "81f7ad09-d3aa-40be-9a2f-112a883f4a75",
+        redirectUri: window.location.href
+      }
+    };
+
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    const ipMap = {
+      "vmnany01": "172.191.2.106",
+      "vmnany02": "172.190.37.44",
+      "vmnaca01": "40.112.145.245",
+      "vmnaca02": "20.253.231.69",
+      "vmnawa01": "13.87.202.123",
+      "vmnawa02": "52.234.126.135"
+    };
+
+    async function signIn() {
+      try {
+        const loginResponse = await msalInstance.loginPopup({
+          scopes: ["User.Read", "Device.Read.All"]
+        });
+
+        const accessToken = (await msalInstance.acquireTokenSilent({
+          scopes: ["User.Read", "Device.Read.All"],
+          account: loginResponse.account
+        })).accessToken;
+
+        document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
+
+        fetchDevices(accessToken);
+      } catch (err) {
+        console.error("Authentication error:", err);
+      }
+    }
+
+    async function fetchDevices(token) {
+      const headers = { Authorization: `Bearer ${token}` };
+      const res = await fetch("https://graph.microsoft.com/v1.0/me/ownedDevices", { headers });
+      const data = await res.json();
+
+      const container = document.getElementById("devices");
+      if (!data.value.length) {
+        container.innerHTML = "<p>No owned devices found.</p>";
+        return;
+      }
+
+      data.value.forEach(device => {
+        const vmName = device.displayName;
+        const publicIp = ipMap[vmName] || "IP not mapped";
+
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${vmName}</strong> – ${publicIp}
+          [<a href="rdp_files/${vmName}.rdp" download>Connect via RDP</a>]
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    window.onload = signIn;
+  </script>
+</body>
+</html>

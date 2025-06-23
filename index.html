@@ -41,7 +41,7 @@
     <h1>Revelate Staff Portal</h1>
   </header>
   <div class="content">
-    <p id="user-greeting">Authenticating...</p>
+    <p id="user-greeting">Welcome to the Revelate Staff Portal.</p>
     <button id="signin-btn">Sign In</button>
     <h3>Your Devices:</h3>
     <ul id="devices"></ul>
@@ -69,25 +69,33 @@
     };
 
     async function signIn() {
-    try {
-    console.log("Starting login popup...");
-    const loginResponse = await msalInstance.loginPopup({
-      scopes: ["User.Read", "Device.Read.All"]
-    });
-    console.log("Login success:", loginResponse);
+      try {
+        console.log("Starting login...");
+        const loginResponse = await msalInstance.loginPopup({
+          scopes: ["User.Read", "Device.Read.All"]
+        });
 
-    const tokenResponse = await msalInstance.acquireTokenSilent({
-      scopes: ["User.Read", "Device.Read.All"],
-      account: loginResponse.account
-    });
+        console.log("Login response:", loginResponse);
 
-    document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
-    fetchDevices(tokenResponse.accessToken);
-    } catch (err) {
-    console.error("Login failed:", err);
-    document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
-  }
-}
+        const account = loginResponse.account;
+        const name = account?.name || account?.username || "User";
+        document.getElementById("user-greeting").innerText = `Welcome, ${name}`;
+
+        // Optional: Acquire token silently and call downstream API
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          scopes: ["User.Read", "Device.Read.All"],
+          account
+        });
+        // Call your device API here if needed:
+        // fetchDevices(tokenResponse.accessToken);
+        fetchDevices(tokenResponse.accessToken);
+
+      } catch (err) {
+        console.error("Login failed:", err);
+        document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
+      }
+    }
+
     document.getElementById("signin-btn").onclick = signIn;
 
     async function fetchDevices(token) {

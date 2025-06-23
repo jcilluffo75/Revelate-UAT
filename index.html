@@ -69,23 +69,25 @@
     };
 
     async function signIn() {
-      try {
-        const loginResponse = await msalInstance.loginPopup({
-          scopes: ["User.Read", "Device.Read.All"]
-        });
+    try {
+    console.log("Starting login popup...");
+    const loginResponse = await msalInstance.loginPopup({
+      scopes: ["User.Read", "Device.Read.All"]
+    });
+    console.log("Login success:", loginResponse);
 
-        const accessToken = (await msalInstance.acquireTokenSilent({
-          scopes: ["User.Read", "Device.Read.All"],
-          account: loginResponse.account
-        })).accessToken;
+    const tokenResponse = await msalInstance.acquireTokenSilent({
+      scopes: ["User.Read", "Device.Read.All"],
+      account: loginResponse.account
+    });
 
-        document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
-
-        fetchDevices(accessToken);
-      } catch (err) {
-        console.error("Authentication error:", err);
-      }
-    }
+    document.getElementById("user-greeting").innerText = `Welcome, ${loginResponse.account.name}`;
+    fetchDevices(tokenResponse.accessToken);
+    } catch (err) {
+    console.error("Login failed:", err);
+    document.getElementById("user-greeting").innerText = `Login failed: ${err.message}`;
+  }
+}
     document.getElementById("signin-btn").onclick = signIn;
 
     async function fetchDevices(token) {

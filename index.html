@@ -109,17 +109,27 @@
         return;
       }
 
-      data.value.forEach(device => {
-        const vmName = device.displayName;
-        const publicIp = ipMap[vmName] || "IP not mapped";
+     const mappedDevices = data.value.filter(device => {
+     const vmName = device.displayName;
+     return ipMap[vmName]; // Only include if there's a matching IP
+     });
 
-        const item = document.createElement("li");
-        item.innerHTML = `
-          <strong>${vmName}</strong> – ${publicIp}
-          [<a href="rdp_files/${vmName}.rdp" download>Connect via RDP</a>]
-        `;
-        container.appendChild(item);
-      });
+     if (mappedDevices.length === 0) {
+     container.innerHTML = "<p>No mapped devices found.</p>";
+     return;
+     }
+
+     mappedDevices.forEach(device => {
+     const vmName = device.displayName;
+     const publicIp = ipMap[vmName];
+
+     const item = document.createElement("li");
+     item.innerHTML = `
+     <strong>${vmName}</strong> – ${publicIp}
+     [<a href="rdp_files/${encodeURIComponent(vmName)}.rdp" download>Connect via RDP</a>]
+     `;
+     container.appendChild(item);
+     });
     }
 
   </script>

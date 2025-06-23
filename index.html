@@ -86,6 +86,7 @@
         console.error("Authentication error:", err);
       }
     }
+    document.getElementById("signin-btn").onclick = signIn;
 
     async function fetchDevices(token) {
       const headers = { Authorization: `Bearer ${token}` };

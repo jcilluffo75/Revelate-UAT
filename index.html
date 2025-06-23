@@ -49,11 +49,12 @@
 
   <script>
     const msalConfig = {
-      auth: {
-        clientId: "81f7ad09-d3aa-40be-9a2f-112a883f4a75",
-        redirectUri: window.location.href
-      }
-    };
+    auth: {
+    clientId: "322e5605-eb6c-4677-8b6c-f6d89757c27b", // ← from screenshot
+    authority: "https://login.microsoftonline.com/7456b239-03b8-4211-b957-a80fd816a8d", // ← tenant ID
+    redirectUri: "https://jcilluffo75.github.io/Revelate-UAT/" // ← GitHub UAT link
+     }
+   };
 
     const msalInstance = new msal.PublicClientApplication(msalConfig);
 
